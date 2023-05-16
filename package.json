@@ -1,0 +1,26 @@
+{
+  "name": "twitchchattriviabot",
+  "version": "1.0.0",
+  "description": "Node.js chat bot for randomized trivia questions.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KyleHorton/TwitchChatTriviaBot.git"
+  },
+  "author": "hortonimo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/KyleHorton/TwitchChatTriviaBot/issues"
+  },
+  "homepage": "https://github.com/KyleHorton/TwitchChatTriviaBot#readme",
+  "dependencies": {
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.3",
+    "he": "^1.2.0",
+    "string-similarity": "^4.0.4",
+    "tmi.js": "^1.8.5"
+  }
+}
