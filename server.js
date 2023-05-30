@@ -7,9 +7,12 @@ const stringSimilarity = require("string-similarity");
 let triviaAnswer = undefined;
 let isWaitingForAnswer = false;
 let hasBeenAnswered = false;
-
 let leaderboard = [];
-let channelBotLivesIn = '' // set this variable to whatever twitch chat you want this bot to live inside
+
+// SETTINGS
+let channelBotLivesIn = 'Bini' // set this variable to whatever twitch chat you want this bot to live inside
+let ALLOWED_USERS = ["nosrettep_", "mcop77", "macgamble", "bini", "xoonies"];
+let ALLOW_ANYONE = true; // if set to true, overrules the ALLOWED_USERS list
 
 const client = new tmi.Client({
   connection: {
@@ -104,8 +107,9 @@ client.on("message", async (channel, context, message) => {
       }
     }
   } else {
-    if (message.trim().toLowerCase() == "!trivia") {
+    if (message.trim().toLowerCase() == "!trivia" && (ALLOWED_USERS.some((x) => x === context.username) || ALLOW_ANYONE)) {
       axios
+      /*
         .get(
           "https://the-trivia-api.com/api/questions?limit=1&difficulties=easy,medium,hard" //documentation link for api in readme
         )
@@ -113,7 +117,16 @@ client.on("message", async (channel, context, message) => {
           let data = response.data[0];
           let question = he.decode(data.question);
           triviaAnswer = he.decode(data.correctAnswer);
-
+          */
+          .get(
+            "https://jservice.io/api/random?count=1"
+          )
+          .then((response) => {
+            let data = response.data[0];
+            let category = he.decode(data.category.title);
+            let question = he.decode(data.question) + ` (Category: ${category})`;
+            triviaAnswer = he.decode(data.answer).replace("<i>", "").replace("</i>", "");
+          
           if (
             question.includes("Which of these") ||
             question.includes("Which one of") ||
@@ -137,7 +150,7 @@ client.on("message", async (channel, context, message) => {
 
           client.say(channel, question);
 
-          setTimeout(WaitingForAnswer, 20000);
+          setTimeout(WaitingForAnswer, 25000);
         })
         .catch((err) => {
           console.log("Error: ", err.message);
