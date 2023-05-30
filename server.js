@@ -10,7 +10,7 @@ let hasBeenAnswered = false;
 let leaderboard = [];
 
 // SETTINGS
-let channelBotLivesIn = 'Bini' // set this variable to whatever twitch chat you want this bot to live inside
+let channelBotLivesIn = 'bini' // set this variable to whatever twitch chat you want this bot to live inside
 let ALLOWED_USERS = ["nosrettep_", "mcop77", "macgamble", "bini", "xoonies"];
 let ALLOW_ANYONE = true; // if set to true, overrules the ALLOWED_USERS list
 
