@@ -104,6 +104,36 @@ client.on("message", async (channel, context, message) => {
         }
 
         hasBeenAnswered = true;
+      } else if (
+        // answer given matches parenthetical in official answer
+        stringSimilarity.compareTwoStrings(
+          message.toLowerCase(),
+          parentheticalExtracted(triviaAnswer.toLowerCase())
+        ) > 0.75
+        ||
+        // answer given matches what's outside parenthetical in official answer
+        stringSimilarity.compareTwoStrings(
+          message.toLowerCase(),
+          nonparentheticalExtracted(triviaAnswer.toLowerCase())
+        ) > 0.75
+      ) {
+        client.say(
+          channel,
+          `${context.username} was mostly correct! We'll give it to them! The answer was: ${triviaAnswer}. +1 point!`
+        );
+
+        if (leaderboard.some((x) => x.name === context.username)) {
+          let person = leaderboard.find((x) => x.name === context.username);
+          person.score += 1;
+        } else {
+          let chatter = {
+            name: context.username,
+            score: 1,
+          };
+          leaderboard.push(chatter);
+        }
+
+        hasBeenAnswered = true;
       }
     }
   } else {
@@ -179,3 +209,28 @@ const shuffleArray = (array) => {
     [array[i], array[j]] = [array[j], array[i]];
   }
 };
+
+
+const hasParenthetical = (s) => {
+  rx = /\(([^()]*)\)/g;
+  if (s.match(rx)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+
+const parentheticalExtracted = (s) => {
+  rx = /\(([^()]*)\)/g;
+  if (!hasParenthetical(s)) {
+    return "";
+  }
+  return s.match(rx).pop().replace("(", "").replace(")", "");
+}
+
+
+const nonparentheticalExtracted = (s) => {
+  rx2 = /\s*(?:\[[^\]]*\]|\([^)]*\))\s*/gm;
+  return s.replace(rx2, "");
+}
