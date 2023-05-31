@@ -3,11 +3,13 @@ Node.js chat bot for randomized trivia questions. Includes a leaderboard command
 
 Node commands to run for all necessary packages:
 
+```
 npm install dotenv
 npm install tmi.js
 npm install axios
 npm install he
 npm install string-similarity
+```
 
 API documentation:
 https://the-trivia-api.com/docs/v2/

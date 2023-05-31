@@ -7,9 +7,12 @@ const stringSimilarity = require("string-similarity");
 let triviaAnswer = undefined;
 let isWaitingForAnswer = false;
 let hasBeenAnswered = false;
-
 let leaderboard = [];
-let channelBotLivesIn = '' // set this variable to whatever twitch chat you want this bot to live inside
+
+// SETTINGS
+let channelBotLivesIn = 'bini' // set this variable to whatever twitch chat you want this bot to live inside
+let ALLOWED_USERS = ["nosrettep_", "mcop77", "macgamble", "bini", "xoonies"];
+let ALLOW_ANYONE = true; // if set to true, overrules the ALLOWED_USERS list
 
 const client = new tmi.Client({
   connection: {
@@ -101,11 +104,42 @@ client.on("message", async (channel, context, message) => {
         }
 
         hasBeenAnswered = true;
+      } else if (
+        // answer given matches parenthetical in official answer
+        stringSimilarity.compareTwoStrings(
+          message.toLowerCase(),
+          parentheticalExtracted(triviaAnswer.toLowerCase())
+        ) > 0.75
+        ||
+        // answer given matches what's outside parenthetical in official answer
+        stringSimilarity.compareTwoStrings(
+          message.toLowerCase(),
+          nonparentheticalExtracted(triviaAnswer.toLowerCase())
+        ) > 0.75
+      ) {
+        client.say(
+          channel,
+          `${context.username} was mostly correct! We'll give it to them! The answer was: ${triviaAnswer}. +1 point!`
+        );
+
+        if (leaderboard.some((x) => x.name === context.username)) {
+          let person = leaderboard.find((x) => x.name === context.username);
+          person.score += 1;
+        } else {
+          let chatter = {
+            name: context.username,
+            score: 1,
+          };
+          leaderboard.push(chatter);
+        }
+
+        hasBeenAnswered = true;
       }
     }
   } else {
-    if (message.trim().toLowerCase() == "!trivia") {
+    if (message.trim().toLowerCase() == "!trivia" && (ALLOWED_USERS.some((x) => x === context.username) || ALLOW_ANYONE)) {
       axios
+      /*
         .get(
           "https://the-trivia-api.com/api/questions?limit=1&difficulties=easy,medium,hard" //documentation link for api in readme
         )
@@ -113,7 +147,16 @@ client.on("message", async (channel, context, message) => {
           let data = response.data[0];
           let question = he.decode(data.question);
           triviaAnswer = he.decode(data.correctAnswer);
-
+          */
+          .get(
+            "https://jservice.io/api/random?count=1"
+          )
+          .then((response) => {
+            let data = response.data[0];
+            let category = he.decode(data.category.title);
+            let question = he.decode(data.question) + ` (Category: ${category})`;
+            triviaAnswer = he.decode(data.answer).replace("<i>", "").replace("</i>", "");
+          
           if (
             question.includes("Which of these") ||
             question.includes("Which one of") ||
@@ -137,7 +180,7 @@ client.on("message", async (channel, context, message) => {
 
           client.say(channel, question);
 
-          setTimeout(WaitingForAnswer, 20000);
+          setTimeout(WaitingForAnswer, 25000);
         })
         .catch((err) => {
           console.log("Error: ", err.message);
@@ -166,3 +209,28 @@ const shuffleArray = (array) => {
     [array[i], array[j]] = [array[j], array[i]];
   }
 };
+
+
+const hasParenthetical = (s) => {
+  rx = /\(([^()]*)\)/g;
+  if (s.match(rx)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+
+const parentheticalExtracted = (s) => {
+  rx = /\(([^()]*)\)/g;
+  if (!hasParenthetical(s)) {
+    return "";
+  }
+  return s.match(rx).pop().replace("(", "").replace(")", "");
+}
+
+
+const nonparentheticalExtracted = (s) => {
+  rx2 = /\s*(?:\[[^\]]*\]|\([^)]*\))\s*/gm;
+  return s.replace(rx2, "");
+}
